@@ -45,9 +45,8 @@ const ManageScriptsPage = () => {
 
     const fetchTelecallers = async () => {
         try {
-            const res = await axios.get('/users');
-            const userData = Array.isArray(res.data) ? res.data : [];
-            setTelecallers(userData.filter(u => u && u.role === 'Telecaller'));
+            const res = await axios.get('/admin/telecallers');
+            setTelecallers(Array.isArray(res.data) ? res.data : []);
         } catch (error) {
             console.error("Telecallers load error:", error);
             toast.error("Failed to load telecallers");

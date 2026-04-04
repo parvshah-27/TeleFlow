@@ -17,6 +17,8 @@ import {
   UserCheck,
   Users,
   Wand2,
+  BarChart3,
+  TrendingUp,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -50,6 +52,8 @@ function MainLayout({ user, handleLogout, onStartTour, children }) {
   const navItems = {
     [ROLES.TELECALLER]: [
       { id: "/", icon: LayoutDashboard, label: "Dashboard" },
+      { id: "/performance-overview", icon: BarChart3, label: "Daily Overview" },
+      { id: "/performance", icon: TrendingUp, label: "Performance Insights" },
       { id: "/leads", icon: PhoneCall, label: "My Leads" },
       { id: "/followups", icon: Clock, label: "Follow Ups" },
       { id: "/bulk-sms", icon: Sparkles, label: "Bulk SMS" },

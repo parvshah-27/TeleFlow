@@ -7,7 +7,7 @@ import Badge from '../components/Badge';
 import Button from '../components/Button';
 import PhoneMask from '../components/PhoneMask';
 import EmailMask from '../components/EmailMask';
-import { Briefcase, PhoneCall, Clock, Sparkles, Wand2, Loader2, TrendingUp, ChevronRight, RefreshCcw, Phone, MessageSquare, Calendar, Eye, EyeOff } from 'lucide-react';
+import { Briefcase, PhoneCall, Clock, Sparkles, Wand2, Loader2, TrendingUp, ChevronRight, RefreshCcw, Phone, MessageSquare, Calendar, Eye, EyeOff, Users, Copy, XCircle, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const TelecallerDashboard = ({
@@ -32,6 +32,8 @@ const TelecallerDashboard = ({
     const [revealedLeads, setRevealedLeads] = useState(new Set());
     const [activeScriptIdx, setActiveScriptIdx] = useState(0);
 
+    const [showScriptModal, setShowScriptModal] = useState(false);
+
     const personalizeScript = (content, lead) => {
         if (!content) return "";
         return content
@@ -54,6 +56,11 @@ const TelecallerDashboard = ({
         window.open(`https://wa.me/${cleanPhone}?text=${encodedMsg}`, '_blank');
     };
 
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        toast.success("Script copied to clipboard!");
+    };
+
     const toggleReveal = (leadId) => {
         setRevealedLeads(prev => {
             const next = new Set(prev);
@@ -70,6 +77,12 @@ const TelecallerDashboard = ({
             setRevealedLeads(new Set(filteredLeads.map(l => l._id)));
         }
     };
+
+    useEffect(() => {
+        if (selectedLead && scripts && scripts.length > 0) {
+            setShowScriptModal(true);
+        }
+    }, [selectedLead, scripts]);
 
     useEffect(() => {
         if (dashboardStats?.callsCompleted === 10) {
@@ -102,6 +115,78 @@ const TelecallerDashboard = ({
 
     return (
         <div className="space-y-6">
+            {/* Script Modal */}
+            {showScriptModal && selectedLead && scripts && scripts.length > 0 && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300">
+                        <div className="bg-fuchsia-600 p-6 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/20 rounded-xl">
+                                    <Sparkles size={20} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Let's Pitch</h3>
+                                    <p className="text-[10px] text-fuchsia-100 font-bold uppercase tracking-tighter opacity-80">Personalized for {selectedLead.name || selectedLead.Name}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowScriptModal(false)}
+                                className="p-2 hover:bg-white/10 text-white rounded-full transition-colors"
+                            >
+                                <XCircle size={24} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <FileText size={14} className="text-fuchsia-500" />
+                                    {scripts[activeScriptIdx]?.title}
+                                </h4>
+                                {scripts.length > 1 && (
+                                    <div className="flex gap-1.5">
+                                        {scripts.map((_, idx) => (
+                                            <button 
+                                                key={idx}
+                                                onClick={() => setActiveScriptIdx(idx)}
+                                                className={`w-2 h-2 rounded-full transition-all ${activeScriptIdx === idx ? 'bg-fuchsia-500 w-4' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 relative">
+                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic font-medium">
+                                    "{personalizeScript(scripts[activeScriptIdx]?.content, selectedLead)}"
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <button 
+                                    onClick={() => handleWhatsApp(scripts[activeScriptIdx]?.content, selectedLead)}
+                                    className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                                >
+                                    <MessageSquare size={16} />
+                                    WhatsApp
+                                </button>
+                                <button 
+                                    onClick={() => copyToClipboard(personalizeScript(scripts[activeScriptIdx]?.content, selectedLead))}
+                                    className="flex items-center justify-center gap-2 bg-slate-800 dark:bg-white dark:text-slate-900 text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-800/20 transition-all active:scale-95"
+                                >
+                                    <Copy size={16} />
+                                    Copy Script
+                                </button>
+                            </div>
+                            
+                            <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-widest">
+                                Assigned by {scripts[activeScriptIdx]?.createdBy?.name || "Manager"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stats-grid">
                 <StatCard
                     title="Today's Target"
@@ -136,72 +221,24 @@ const TelecallerDashboard = ({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* LEFT SIDEBAR: Performance, Logger, and History */}
                 <div className="lg:col-span-1 space-y-6">
-                    {/* Suggested Script Card */}
+                    {/* Suggested Script Trigger Card */}
                     {selectedLead && scripts && scripts.length > 0 && (
-                        <Card className="p-0 overflow-hidden border-none shadow-xl bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-left-4 duration-500">
-                            <div className="bg-fuchsia-600 px-4 py-3 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Sparkles size={14} className="text-fuchsia-200" />
-                                    <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Suggested Script</h3>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={() => handleWhatsApp(scripts[activeScriptIdx]?.content, selectedLead)}
-                                        className="p-1 bg-white/10 hover:bg-white/20 text-white rounded transition-colors"
-                                        title="Send via WhatsApp"
-                                    >
-                                        <MessageSquare size={12} />
-                                    </button>
-                                    {scripts.length > 1 && (
-                                        <div className="flex gap-1">
-                                            {scripts.map((_, idx) => (
-                                                <button 
-                                                    key={idx}
-                                                    onClick={() => setActiveScriptIdx(idx)}
-                                                    className={`w-1.5 h-1.5 rounded-full transition-all ${activeScriptIdx === idx ? 'bg-white w-3' : 'bg-fuchsia-400'}`}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                        <Card className="p-4 border-none shadow-xl bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white overflow-hidden relative group cursor-pointer" onClick={() => setShowScriptModal(true)}>
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                                <FileText size={48} />
                             </div>
-                            <div className="p-4">
-                                <h4 className="text-[11px] font-black text-slate-800 dark:text-white mb-2 uppercase tracking-tight">
-                                    {scripts[activeScriptIdx]?.title}
-                                </h4>
-                                <div className="bg-fuchsia-50/50 dark:bg-fuchsia-900/10 p-3 rounded-xl border border-fuchsia-100/50 dark:border-fuchsia-900/20 relative">
-                                    <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed italic">
-                                        "{personalizeScript(scripts[activeScriptIdx]?.content, selectedLead)}"
-                                    </p>
-                                    <div className="absolute -bottom-1 -right-1">
-                                        <MessageSquare size={12} className="text-fuchsia-200 dark:text-fuchsia-800" />
-                                    </div>
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Sparkles size={14} className="text-fuchsia-200" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-widest">Active Pitch</h3>
                                 </div>
-                                <p className="text-[9px] text-slate-400 mt-3 flex items-center gap-1 font-medium">
-                                    <Users size={10} /> Assigned by {scripts[activeScriptIdx]?.createdBy?.name || "Manager"}
-                                </p>
+                                <p className="text-xs font-bold line-clamp-1 mb-3">{scripts[activeScriptIdx]?.title}</p>
+                                <button className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-all">
+                                    <Eye size={12} /> View Script
+                                </button>
                             </div>
                         </Card>
                     )}
-
-                    <Card className="p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-md">
-                                <TrendingUp size={16} className="text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Performance</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-tight">
-                            Track your daily success and milestones.
-                        </p>
-                        <Link
-                            to="/performance"
-                            className="flex items-center justify-between w-full p-2 bg-slate-50 dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all group border border-slate-100 dark:border-slate-800"
-                        >
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">View Insights</span>
-                            <ChevronRight size={14} className="text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all" />
-                        </Link>
-                    </Card>
 
                     <Card className="log-call-section">
                         <div className="mb-4">

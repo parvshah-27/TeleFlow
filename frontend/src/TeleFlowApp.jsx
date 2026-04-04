@@ -14,6 +14,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import ManagerDashboard from './pages/ManagerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PerformanceInsights from './pages/PerformanceInsights';
+import PerformanceOverviewPage from './pages/PerformanceOverviewPage';
 import ProfilePage from './pages/ProfilePage';
 import BulkWhatsAppPage from './pages/BulkWhatsAppPage';
 import BulkSMSPage from './pages/BulkSMSPage';
@@ -219,6 +220,7 @@ function TeleFlowAppContent({ user, handleLogout }) {
                 } />
                 <Route path="/leads" element={<MyLeadsPage {...{ user, filteredLeads, searchQuery, setSearchQuery, handleSelectLead, pagination, fetchLeads, handleUpdateStatus }} />} />
                 <Route path="/performance" element={<PerformanceInsights />} />
+                <Route path="/performance-overview" element={<PerformanceOverviewPage />} />
                 <Route path="/followups" element={<FollowUps onSelectLead={handleSelectLead} />} />
                 <Route path="/bulk-whatsapp" element={
                     (user.role?.toLowerCase() === ROLES.ADMIN.toLowerCase() || user.role?.toLowerCase() === ROLES.TELECALLER.toLowerCase()) 
