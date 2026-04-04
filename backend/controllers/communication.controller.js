@@ -3,13 +3,20 @@ const MessageLog = require("../models/MessageLog");
 const twilio = require('twilio');
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const apiKeySid = process.env.TWILIO_API_KEY_SID; // SK...
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
 
-// If we have an API Key (SK...), we need both the API Key and the Account SID (AC...)
-// Otherwise, standard Account SID and Auth Token (AC... and Token)
-const client = (accountSid && authToken) ? twilio(accountSid, authToken) : null;
+let client;
+try {
+    if (accountSid && authToken) {
+        client = twilio(accountSid, authToken);
+        console.log("✅ Twilio Client Initialized with SID:", accountSid);
+    } else {
+        console.error("❌ Twilio Credentials Missing: SID or AuthToken");
+    }
+} catch (err) {
+    console.error("❌ Failed to initialize Twilio client:", err.message);
+}
 
 exports.sendBulkWhatsApp = async (req, res, next) => {
     try {
@@ -28,6 +35,7 @@ exports.sendBulkWhatsApp = async (req, res, next) => {
         }
 
         const leads = await Lead.find({ _id: { $in: leadIds } });
+        console.log(`🔍 Found ${leads.length} leads for broadcast out of ${leadIds.length} requested.`);
 
         const results = {
             success: 0,
@@ -132,6 +140,7 @@ exports.sendBulkSMS = async (req, res, next) => {
         }
 
         const leads = await Lead.find({ _id: { $in: leadIds } });
+        console.log(`🔍 Found ${leads.length} leads for broadcast out of ${leadIds.length} requested.`);
 
         const results = {
             success: 0,
@@ -181,13 +190,15 @@ exports.sendBulkSMS = async (req, res, next) => {
                 // Use the configured number EXACTLY as it is in .env per user request
                 const fromNumber = twilioNumber.trim();
 
-                console.log(`Attempting SMS to ${phoneNumber} from ${fromNumber}`);
+                console.log(`📡 BROADCAST: Attempting SMS to ${phoneNumber} from ${fromNumber}`);
 
-                await client.messages.create({
+                const msgResponse = await client.messages.create({
                     body: personalizedMessage,
                     from: fromNumber,
                     to: phoneNumber
                 });
+                
+                console.log(`✅ BROADCAST: SMS Sent to ${phoneNumber}. SID: ${msgResponse.sid}`);
 
                 results.success++;
                 results.details.push({ lead: lead.name, status: "Success" });
@@ -212,7 +223,10 @@ exports.sendBulkSMS = async (req, res, next) => {
             finalMsg += ` Error: ${lastError}`;
         }
 
-        res.json({
+        // Use appropriate status code for partial or total failure
+        const statusCode = results.success > 0 ? 200 : (results.failed > 0 ? 400 : 200);
+
+        res.status(statusCode).json({
             success: results.success > 0,
             msg: finalMsg,
             logId: log._id,
@@ -227,6 +241,7 @@ exports.getMessageLogs = async (req, res, next) => {
     try {
         const logs = await MessageLog.find()
             .populate("sender", "name")
+            .populate("leads", "name phone")
             .sort({ createdAt: -1 })
             .limit(20);
         res.json(logs);

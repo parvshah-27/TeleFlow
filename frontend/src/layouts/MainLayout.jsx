@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   ClipboardCheck,
   Clock,
+  FileText,
   HelpCircle,
   LayoutDashboard,
   LogOut,
@@ -56,6 +57,7 @@ function MainLayout({ user, handleLogout, onStartTour, children }) {
     [ROLES.MANAGER]: [
       { id: "/", icon: LayoutDashboard, label: "Overview" },
       { id: "/users", icon: Users, label: "Manage Telecallers" },
+      { id: "/manage-scripts", icon: FileText, label: "Manage Scripts" },
       { id: "/upload", icon: UploadCloud, label: "Import Leads" },
       { id: "/assign", icon: UserCheck, label: "Manage Leads" },
       { id: "/completed", icon: ClipboardCheck, label: "Completed Leads" },
@@ -63,6 +65,7 @@ function MainLayout({ user, handleLogout, onStartTour, children }) {
     [ROLES.ADMIN]: [
       { id: "/", icon: LayoutDashboard, label: "Admin Dashboard" },
       { id: "/users", icon: Users, label: "User Management" },
+      { id: "/manage-scripts", icon: FileText, label: "Manage Scripts" },
       { id: "/bulk-whatsapp", icon: MessageCircle, label: "Bulk WhatsApp" },
       { id: "/bulk-sms", icon: Sparkles, label: "Bulk SMS" },
     ],

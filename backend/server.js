@@ -3,7 +3,11 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+console.log("--- Server Bootstrap ---");
+console.log("Time:", new Date().toISOString());
 
 const app = express();
 
@@ -46,6 +50,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/followups", require("./routes/followup.routes"));
 app.use("/api/gemini", require("./routes/gemini.routes"));
 app.use("/api/communication", require("./routes/communication.routes"));
+app.use("/api/scripts", require("./routes/script.routes"));
 
 /* ---------- GLOBAL ERROR HANDLER ---------- */
 app.use((err, req, res, next) => {
@@ -60,6 +65,8 @@ app.use((err, req, res, next) => {
 
 /* ---------- SERVER ---------- */
 const PORT = process.env.PORT || 5001;
+console.log(`Starting server on port ${PORT}...`);
+console.log(`Using MONGO_URI: ${process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + "..." : "UNDEFINED"}`);
 
 const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);

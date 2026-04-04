@@ -21,7 +21,6 @@ const MyLeadsPage = ({
     searchQuery,
     setSearchQuery,
     handleSelectLead,
-    handleGenerateScript,
     pagination,
     fetchLeads,
     handleUpdateStatus
@@ -160,14 +159,6 @@ const MyLeadsPage = ({
                                                 >
                                                     {revealedLeads.has(lead._id) ? <EyeOff size={14} /> : <Eye size={14} />}
                                                 </button>
-
-                                                <button
-                                                    onClick={() => handleGenerateScript(lead)}
-                                                    className="p-2 text-fuchsia-600 bg-fuchsia-50 dark:bg-fuchsia-900/20 rounded-lg hover:bg-fuchsia-100 transition-colors"
-                                                    title="Generate AI Script"
-                                                >
-                                                    <Sparkles size={14} />
-                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -245,12 +236,6 @@ const MyLeadsPage = ({
                                                                             isRevealed={revealedLeads.has(lead._id)}
                                                                         />
                                                                     </div>
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); handleGenerateScript(lead); }}
-                                                                        className="p-1.5 text-fuchsia-400 hover:text-fuchsia-600 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 rounded-lg transition-all"
-                                                                    >
-                                                                        <Sparkles size={12} />
-                                                                    </button>
                                                                 </div>
 
                                                                 <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-slate-50 dark:border-slate-700/50">

@@ -1,0 +1,11 @@
+Uncaught Exception: Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Function.listen (D:\College\Sem 6\Major Project\Telecaller-Management-System\TeleFlow\backend\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\College\Sem 6\Major Project\Telecaller-Management-System\TeleFlow\backend\server.js:64:20)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)

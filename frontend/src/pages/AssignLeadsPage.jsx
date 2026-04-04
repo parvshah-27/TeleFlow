@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
-import { Users, UserCheck, RefreshCcw } from 'lucide-react';
+import { Users, UserCheck, RefreshCcw, Edit2, Trash2, X, Check } from 'lucide-react';
 
 const AssignLeadsPage = () => {
     const [leads, setLeads] = useState([]);
@@ -15,6 +15,10 @@ const AssignLeadsPage = () => {
     const [loading, setLoading] = useState(false);
     const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalLeads: 0 });
     const [summary, setSummary] = useState({ total: 0, unassigned: 0, assigned: 0 });
+
+    // State for editing
+    const [editingLead, setEditingLead] = useState(null);
+    const [editForm, setEditForm] = useState({ name: '', phone: '', email: '', product: '' });
 
     const fetchData = async (page = 1) => {
         setLoading(true);
@@ -71,11 +75,44 @@ const AssignLeadsPage = () => {
             ));
 
             toast.success(view === "unassigned" ? "Leads assigned successfully!" : "Leads reassigned successfully!");
-            fetchData();
+            fetchData(pagination.currentPage);
             setSelectedLeads([]);
         } catch (error) {
             toast.error("Failed to process leads.");
             console.error("Error processing leads:", error);
+        }
+    };
+
+    const handleDeleteLead = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this lead? This will also delete all call logs and follow-ups associated with it.")) return;
+
+        try {
+            await axios.delete(`/leads/${id}`);
+            toast.success("Lead deleted successfully");
+            fetchData(pagination.currentPage);
+        } catch (err) {
+            toast.error("Failed to delete lead");
+        }
+    };
+
+    const startEdit = (lead) => {
+        setEditingLead(lead._id);
+        setEditForm({
+            name: lead.name || '',
+            phone: lead.phone || '',
+            email: lead.email || '',
+            product: lead.product || ''
+        });
+    };
+
+    const handleUpdateLead = async () => {
+        try {
+            await axios.put(`/leads/${editingLead}`, editForm);
+            toast.success("Lead updated successfully");
+            setEditingLead(null);
+            fetchData(pagination.currentPage);
+        } catch (err) {
+            toast.error("Failed to update lead");
         }
     };
 
@@ -110,7 +147,7 @@ const AssignLeadsPage = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-3">
                     <Users className="text-blue-600" size={24} />
-                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white text-wrap">Lead Assignment</h2>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white text-wrap">Lead Management</h2>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -173,16 +210,17 @@ const AssignLeadsPage = () => {
                                         <th className="px-6 py-4 font-medium text-wrap">Customer</th>
                                         <th className="px-6 py-4 font-medium text-wrap">Assigned To</th>
                                         <th className="px-6 py-4 font-medium text-wrap">Status</th>
+                                        <th className="px-6 py-4 font-medium text-wrap text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-10 text-center text-slate-400">Loading leads...</td>
+                                            <td colSpan="5" className="px-6 py-10 text-center text-slate-400">Loading leads...</td>
                                         </tr>
                                     ) : leads.length === 0 ? (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-10 text-center text-slate-400">No leads found in this view.</td>
+                                            <td colSpan="5" className="px-6 py-10 text-center text-slate-400">No leads found in this view.</td>
                                         </tr>
                                     ) : leads.map((lead) => (
                                         <tr key={lead._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
@@ -195,8 +233,34 @@ const AssignLeadsPage = () => {
                                                 />
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="font-medium text-slate-800 dark:text-slate-200">{lead.name || "N/A"}</div>
-                                                <div className="text-xs text-slate-500 dark:text-slate-400">{lead.phone || "N/A"}</div>
+                                                {editingLead === lead._id ? (
+                                                    <div className="space-y-2 max-w-xs">
+                                                        <input 
+                                                            className="w-full border p-1 rounded text-xs bg-white dark:bg-slate-800 dark:border-slate-600"
+                                                            value={editForm.name}
+                                                            onChange={e => setEditForm({...editForm, name: e.target.value})}
+                                                            placeholder="Name"
+                                                        />
+                                                        <input 
+                                                            className="w-full border p-1 rounded text-xs bg-white dark:bg-slate-800 dark:border-slate-600"
+                                                            value={editForm.phone}
+                                                            onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                                                            placeholder="Phone"
+                                                        />
+                                                        <input 
+                                                            className="w-full border p-1 rounded text-xs bg-white dark:bg-slate-800 dark:border-slate-600"
+                                                            value={editForm.email}
+                                                            onChange={e => setEditForm({...editForm, email: e.target.value})}
+                                                            placeholder="Email"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="font-medium text-slate-800 dark:text-slate-200">{lead.name || "N/A"}</div>
+                                                        <div className="text-xs text-slate-500 dark:text-slate-400">{lead.phone || "N/A"}</div>
+                                                        {lead.email && <div className="text-[10px] text-slate-400 dark:text-slate-500">{lead.email}</div>}
+                                                    </>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {lead.assignedTo ? (
@@ -209,6 +273,43 @@ const AssignLeadsPage = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4"><Badge status={lead.status} /></td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {editingLead === lead._id ? (
+                                                        <>
+                                                            <button 
+                                                                onClick={handleUpdateLead}
+                                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                            >
+                                                                <Check size={16} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => setEditingLead(null)}
+                                                                className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button 
+                                                                onClick={() => startEdit(lead)}
+                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                title="Edit Lead"
+                                                            >
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleDeleteLead(lead._id)}
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="Delete Lead"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

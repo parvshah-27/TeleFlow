@@ -6,7 +6,7 @@ import Button from '../components/Button';
 import Card from '../components/Card';
 import SimpleBarChart from '../components/SimpleBarChart';
 import Badge from '../components/Badge';
-import { Briefcase, PhoneCall, FileText, PieChart, Download, Users, BarChart2 } from 'lucide-react';
+import { Briefcase, PhoneCall, FileText, PieChart, Download, Users, BarChart2, Zap, Sparkles, Clock } from 'lucide-react';
 import { Parser } from '@json2csv/plainjs';
 
 const ManagerDashboard = () => {
@@ -19,23 +19,22 @@ const ManagerDashboard = () => {
         teamPerformance: [],
         leadStatusDistribution: []
     });
+    const [feed, setFeed] = useState([]);
     const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
-        const fetchStats = () => {
+        const fetchData = () => {
             axios.get("/leads/manager-dashboard-stats")
-                .then(res => {
-                    setStats(res.data);
-                })
-                .catch(err => {
-                    console.error("Error fetching manager dashboard stats:", err);
-                    if (stats.totalLeads === 0) toast.error("Failed to fetch manager dashboard stats.");
-                });
+                .then(res => setStats(res.data))
+                .catch(err => console.error("Stats error:", err));
+
+            axios.get("/scripts/feed")
+                .then(res => setFeed(res.data))
+                .catch(err => console.error("Feed error:", err));
         };
 
-        fetchStats();
-        const interval = setInterval(fetchStats, 30000);
-
+        fetchData();
+        const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -169,6 +168,43 @@ const ManagerDashboard = () => {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Live Script Activity Feed */}
+            <div className="grid grid-cols-1 gap-6">
+                <Card title="Live Script Activity" icon={Zap}>
+                    <div className="space-y-4">
+                        {feed.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {feed.map((item, idx) => (
+                                    <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                                            <Sparkles size={16} className="text-fuchsia-500" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2 mb-1">
+                                                <p className="text-xs font-black text-slate-800 dark:text-white truncate">
+                                                    {item.telecaller?.name || "Someone"}
+                                                </p>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                    <Clock size={10} /> {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-500 leading-tight mb-2">
+                                                used <span className="text-fuchsia-600 font-bold">"{item.script?.title || "Default Script"}"</span> for <span className="font-bold text-slate-700 dark:text-slate-300">{item.lead?.name || "a lead"}</span>
+                                            </p>
+                                            <Badge status={item.status} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-10">
+                                <p className="text-sm text-slate-400 italic">No recent script activity recorded.</p>
+                            </div>
+                        )}
+                    </div>
+                </Card>
             </div>
         </div>
     );

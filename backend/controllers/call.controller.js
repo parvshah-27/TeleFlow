@@ -3,7 +3,7 @@ const FollowUp = require('../models/FollowUp');
 const Lead = require('../models/Lead');
 
 exports.logCall = async (req, res, next) => {
-    const { leadId, notes, followUpDate, status } = req.body;
+    const { leadId, notes, followUpDate, status, scriptId } = req.body;
     const telecallerId = req.user.id;
 
     try {
@@ -16,7 +16,8 @@ exports.logCall = async (req, res, next) => {
             lead: leadId,
             telecaller: telecallerId,
             notes,
-            status
+            status,
+            script: scriptId
         });
 
         const callLog = await newCallLog.save();

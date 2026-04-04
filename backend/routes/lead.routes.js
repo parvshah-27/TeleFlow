@@ -45,7 +45,8 @@ router.get("/", auth, role("Manager", "Admin"), controller.getAllLeads);
 router.get("/my", auth, role("Telecaller"), controller.getMyLeads);
 router.post("/assign", auth, role("Manager"), controller.assignLead);
 router.post("/bulk-assign", auth, role("Manager"), controller.bulkAssign);
-router.put("/:id", auth, role("Telecaller"), controller.updateLead);
+router.put("/:id", auth, controller.updateLead); // role check inside controller
+router.delete("/:id", auth, role("Manager", "Admin"), controller.deleteLead);
 router.get("/for-verification", auth, role("Manager"), controller.getLeadsForVerification);
 router.put("/verify/:id", auth, role("Manager"), controller.verifyLead);
 

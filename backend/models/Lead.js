@@ -5,6 +5,7 @@ const leadSchema = new mongoose.Schema({
     email: String,
     phone: String,
     product: String,
+    price: { type: Number, default: 0 },
     notes: String,
     callbackDate: Date,
     status: { type: String, default: "New" },

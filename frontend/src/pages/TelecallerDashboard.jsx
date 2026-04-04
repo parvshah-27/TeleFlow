@@ -20,17 +20,39 @@ const TelecallerDashboard = ({
     updateForm,
     setUpdateForm,
     handleLogCall,
-    handleGenerateScript,
     handleRefineNotes,
     isRefining,
     pagination,
     fetchLeads,
     dashboardStats,
-    aiScripts
+    scripts
 }) => {
     const [callHistory, setCallHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [revealedLeads, setRevealedLeads] = useState(new Set());
+    const [activeScriptIdx, setActiveScriptIdx] = useState(0);
+
+    const personalizeScript = (content, lead) => {
+        if (!content) return "";
+        return content
+            .replace(/{{name}}/g, lead.name || lead.Name || "Customer")
+            .replace(/{{product}}/g, lead.product || lead.Product || "our product")
+            .replace(/{{price}}/g, lead.price || lead.Price || "TBD")
+            .replace(/{{last_call}}/g, lead.callbackDate ? new Date(lead.callbackDate).toLocaleDateString() : "no previous call")
+            .replace(/{{sender}}/g, user.name || "Telecaller");
+    };
+
+    const handleWhatsApp = (scriptContent, lead) => {
+        const phone = lead.phone || lead.Phone;
+        if (!phone) return toast.error("No phone number found");
+        
+        const message = personalizeScript(scriptContent, lead);
+        const encodedMsg = encodeURIComponent(message);
+        
+        // Remove spaces and special chars from phone
+        const cleanPhone = phone.replace(/\D/g, '');
+        window.open(`https://wa.me/${cleanPhone}?text=${encodedMsg}`, '_blank');
+    };
 
     const toggleReveal = (leadId) => {
         setRevealedLeads(prev => {
@@ -114,6 +136,54 @@ const TelecallerDashboard = ({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* LEFT SIDEBAR: Performance, Logger, and History */}
                 <div className="lg:col-span-1 space-y-6">
+                    {/* Suggested Script Card */}
+                    {selectedLead && scripts && scripts.length > 0 && (
+                        <Card className="p-0 overflow-hidden border-none shadow-xl bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-left-4 duration-500">
+                            <div className="bg-fuchsia-600 px-4 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles size={14} className="text-fuchsia-200" />
+                                    <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Suggested Script</h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => handleWhatsApp(scripts[activeScriptIdx]?.content, selectedLead)}
+                                        className="p-1 bg-white/10 hover:bg-white/20 text-white rounded transition-colors"
+                                        title="Send via WhatsApp"
+                                    >
+                                        <MessageSquare size={12} />
+                                    </button>
+                                    {scripts.length > 1 && (
+                                        <div className="flex gap-1">
+                                            {scripts.map((_, idx) => (
+                                                <button 
+                                                    key={idx}
+                                                    onClick={() => setActiveScriptIdx(idx)}
+                                                    className={`w-1.5 h-1.5 rounded-full transition-all ${activeScriptIdx === idx ? 'bg-white w-3' : 'bg-fuchsia-400'}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="p-4">
+                                <h4 className="text-[11px] font-black text-slate-800 dark:text-white mb-2 uppercase tracking-tight">
+                                    {scripts[activeScriptIdx]?.title}
+                                </h4>
+                                <div className="bg-fuchsia-50/50 dark:bg-fuchsia-900/10 p-3 rounded-xl border border-fuchsia-100/50 dark:border-fuchsia-900/20 relative">
+                                    <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed italic">
+                                        "{personalizeScript(scripts[activeScriptIdx]?.content, selectedLead)}"
+                                    </p>
+                                    <div className="absolute -bottom-1 -right-1">
+                                        <MessageSquare size={12} className="text-fuchsia-200 dark:text-fuchsia-800" />
+                                    </div>
+                                </div>
+                                <p className="text-[9px] text-slate-400 mt-3 flex items-center gap-1 font-medium">
+                                    <Users size={10} /> Assigned by {scripts[activeScriptIdx]?.createdBy?.name || "Manager"}
+                                </p>
+                            </div>
+                        </Card>
+                    )}
+
                     <Card className="p-4">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-md">
@@ -144,7 +214,7 @@ const TelecallerDashboard = ({
                                 <div className="text-xs text-slate-400 italic">No lead selected</div>
                             )}
                         </div>
-                        <form className="space-y-4" onSubmit={handleLogCall}>
+                        <form className="space-y-4" onSubmit={(e) => handleLogCall(e, scripts[activeScriptIdx]?._id)}>
                             <div>
                                 <label className="block text-[10px] font-medium text-slate-500 uppercase mb-1">Status</label>
                                 <select
@@ -310,33 +380,6 @@ const TelecallerDashboard = ({
                                                     >
                                                         {revealedLeads.has(lead._id) ? <EyeOff size={14} /> : <Eye size={14} />}
                                                     </button>
-
-                                                    <div className="relative group/ai">
-                                                        <button
-                                                            onClick={() => handleGenerateScript(lead)} 
-                                                            className="p-2 text-fuchsia-600 bg-fuchsia-50 dark:bg-fuchsia-900/20 rounded-lg hover:bg-fuchsia-100 transition-colors"
-                                                            title="Generate Default Script"
-                                                        >
-                                                            <Sparkles size={14} />
-                                                        </button>
-                                                        
-                                                        {aiScripts.length > 0 && (
-                                                            <div className="absolute right-0 bottom-full mb-2 hidden group-hover/ai:block z-30 min-w-[160px]">
-                                                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 space-y-1 animate-in fade-in zoom-in duration-150">
-                                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 py-1">Select Template</p>
-                                                                    {aiScripts.map(script => (
-                                                                        <button
-                                                                            key={script._id}
-                                                                            onClick={() => handleGenerateScript(lead, script)}
-                                                                            className="w-full text-left px-3 py-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-fuchsia-600 rounded-lg transition-colors truncate"
-                                                                        >
-                                                                            {script.title}
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>

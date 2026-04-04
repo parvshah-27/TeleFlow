@@ -528,22 +528,61 @@ exports.bulkAssign = async (req, res, next) => {
 exports.updateLead = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { status, notes, callbackDate } = req.body;
+        const updateData = req.body;
 
-        const lead = await Lead.findOne({ _id: id, assignedTo: req.user.id });
-
-        if (!lead) {
-            return res.status(404).json({ msg: "Lead not found or not assigned to you" });
+        let lead;
+        if (req.user.role === "Telecaller") {
+            // Telecallers can only update status, notes, and callbackDate for assigned leads
+            const { status, notes, callbackDate } = req.body;
+            lead = await Lead.findOne({ _id: id, assignedTo: req.user.id });
+            if (!lead) return res.status(404).json({ msg: "Lead not found or not assigned to you" });
+            
+            if (status) lead.status = status;
+            if (notes) lead.notes = notes;
+            if (callbackDate) lead.callbackDate = callbackDate;
+            await lead.save();
+        } else {
+            // Managers and Admins can update any field
+            lead = await Lead.findByIdAndUpdate(id, updateData, { new: true });
+            if (!lead) return res.status(404).json({ msg: "Lead not found" });
         }
-
-        if (status) lead.status = status;
-        if (notes) lead.notes = notes;
-        if (callbackDate) lead.callbackDate = callbackDate;
-
-        await lead.save();
 
         res.json(lead);
     } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteLead = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        console.log(`🗑️ Attempting to delete lead with ID: ${id}`);
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            console.log(`❌ Invalid Lead ID format: ${id}`);
+            return res.status(400).json({ msg: "Invalid Lead ID" });
+        }
+
+        const lead = await Lead.findByIdAndDelete(id);
+        
+        if (!lead) {
+            console.log(`❌ Lead not found with ID: ${id}`);
+            return res.status(404).json({ msg: "Lead not found" });
+        }
+
+        console.log(`✅ Lead deleted: ${lead.name}`);
+
+        // Also delete related CallLogs and FollowUps
+        const [callLogs, followUps] = await Promise.all([
+            CallLog.deleteMany({ lead: id }),
+            FollowUp.deleteMany({ lead: id })
+        ]);
+        
+        console.log(`🧹 Cleaned up ${callLogs.deletedCount} call logs and ${followUps.deletedCount} follow-ups`);
+
+        res.json({ msg: "Lead and related records deleted successfully" });
+    } catch (error) {
+        console.error("❌ Error in deleteLead:", error);
         next(error);
     }
 };
