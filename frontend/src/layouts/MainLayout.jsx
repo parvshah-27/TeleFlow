@@ -178,13 +178,13 @@ function MainLayout({ user, handleLogout, onStartTour, children }) {
             </div>
 
             <div className="flex items-center gap-4">
-              <button
-                onClick={onStartTour}
+              <Link
+                to="/tutorial"
                 className="p-2 rounded-full text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                title="Start Tutorial"
+                title="View Tutorial"
               >
                 <HelpCircle size={20} />
-              </button>
+              </Link>
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"

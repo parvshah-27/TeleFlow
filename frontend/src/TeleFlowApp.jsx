@@ -16,6 +16,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PerformanceInsights from './pages/PerformanceInsights';
 import PerformanceOverviewPage from './pages/PerformanceOverviewPage';
 import ProfilePage from './pages/ProfilePage';
+import TutorialPage from './pages/TutorialPage';
 import BulkWhatsAppPage from './pages/BulkWhatsAppPage';
 import BulkSMSPage from './pages/BulkSMSPage';
 import ManageScriptsPage from './pages/ManageScriptsPage';
@@ -242,6 +243,7 @@ function TeleFlowAppContent({ user, handleLogout }) {
                 <Route path="/completed" element={<CompletedLeadsPage />} />
                 <Route path="/users" element={<UserManagementPage currentUser={user} />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/tutorial" element={<TutorialPage />} />
                 <Route path="*" element={<div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Page Not Found</div>} />
             </Routes>
         </MainLayout>
