@@ -4,6 +4,13 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+try {
+    dns.setServers(["8.8.8.8", "8.8.4.4"]);
+} catch (e) {
+    console.warn("Could not set DNS servers:", e.message);
+}
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 console.log("--- Server Bootstrap ---");
@@ -64,13 +71,29 @@ app.use((err, req, res, next) => {
 });
 
 /* ---------- SERVER ---------- */
-const PORT = process.env.PORT || 5001;
-console.log(`Starting server on port ${PORT}...`);
+let PORT = process.env.PORT || 5001;
+console.log(`Initial target port: ${PORT}...`);
 console.log(`Using MONGO_URI: ${process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + "..." : "UNDEFINED"}`);
 
-const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+let server;
+
+function startServer(portToTry) {
+    server = app.listen(portToTry, () => {
+        const actualPort = server.address().port;
+        console.log(`🚀 Server running on port ${actualPort}`);
+    });
+
+    server.on("error", (err) => {
+        if (err.code === "EADDRINUSE") {
+            console.log(`Port ${portToTry} is already in use, trying port ${parseInt(portToTry) + 1}...`);
+            startServer(parseInt(portToTry) + 1);
+        } else {
+            console.error(`Server failed to start: ${err.message}`);
+        }
+    });
+}
+
+startServer(PORT);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
@@ -78,7 +101,8 @@ process.on('unhandledRejection', (err, promise) => {
     // Log the error to a file
     require('fs').appendFileSync('error.log', `Unhandled Rejection: ${err.stack}\n`);
     // Close server & exit process
-    server.close(() => process.exit(1));
+    if (server) server.close(() => process.exit(1));
+    else process.exit(1);
 });
 
 // Handle uncaught exceptions
@@ -87,6 +111,7 @@ process.on('uncaughtException', (err) => {
     // Log the error to a file
     require('fs').appendFileSync('error.log', `Uncaught Exception: ${err.stack}\n`);
     // Close server & exit process
-    server.close(() => process.exit(1));
+    if (server) server.close(() => process.exit(1));
+    else process.exit(1);
 });
 
