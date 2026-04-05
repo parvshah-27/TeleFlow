@@ -81,6 +81,15 @@ function startServer(portToTry) {
     server = app.listen(portToTry, () => {
         const actualPort = server.address().port;
         console.log(`🚀 Server running on port ${actualPort}`);
+        // Write actual port to a file for frontend to discover
+        try {
+            const fs = require('fs');
+            const portFilePath = path.join(__dirname, '..', 'backend_port.txt');
+            fs.writeFileSync(portFilePath, actualPort.toString());
+            console.log(`Port saved to ${portFilePath}`);
+        } catch (err) {
+            console.warn(`Could not save port to file: ${err.message}`);
+        }
     });
 
     server.on("error", (err) => {
