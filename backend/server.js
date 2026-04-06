@@ -22,18 +22,12 @@ const adminRoutes = require("./routes/admin.routes");
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cookieParser());
-
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(",") 
-    : ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"];
-
+const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"];
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
-            console.log("Origin blocked by CORS:", origin);
             callback(new Error("Not allowed by CORS"));
         }
     },
@@ -70,14 +64,35 @@ app.use((err, req, res, next) => {
 });
 
 /* ---------- SERVER ---------- */
-const PORT = parseInt(process.env.PORT, 10) || 5001;
-const HOST = "0.0.0.0";
+const PORT = process.env.PORT || 5001;
+console.log(`Starting server on port ${PORT}...`);
+console.log(`Using MONGO_URI: ${process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + "..." : "UNDEFINED"}`);
 
-console.log(`Starting server on ${HOST}:${PORT}...`);
-console.log(`Using MONGO_URI: ${process.env.MONGO_URI ? (process.env.MONGO_URI.startsWith("mongodb+srv") ? "Connected to Atlas" : "Connected to Local/Other") : "UNDEFINED"}`);
+const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
 
-const server = app.listen(PORT, HOST, () => {
-    console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+/* ---------- SOCKET.IO ---------- */
+const io = require("socket.io")(server, {
+    cors: {
+        origin: allowedOrigins,
+        credentials: true
+    }
+});
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+    console.log("New client connected:", socket.id);
+
+    socket.on("join-role", (role) => {
+        socket.join(role);
+        console.log(`Socket ${socket.id} joined room: ${role}`);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Client disconnected:", socket.id);
+    });
 });
 
 // Handle unhandled promise rejections
@@ -98,4 +113,3 @@ process.on('uncaughtException', (err) => {
     server.close(() => process.exit(1));
 });
 
-    

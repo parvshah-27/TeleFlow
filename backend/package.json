@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js >> server.log 2>&1"
   },
   "dependencies": {
     "axios": "^1.13.5",
@@ -19,6 +19,7 @@
     "multer": "^2.0.2",
     "nodemailer": "^8.0.2",
     "papaparse": "^5.5.3",
+    "socket.io": "^4.8.3",
     "twilio": "^5.13.1"
   }
 }

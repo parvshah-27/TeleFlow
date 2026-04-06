@@ -38,6 +38,16 @@ exports.logCall = async (req, res, next) => {
         lead.status = status;
         await lead.save();
 
+        const io = req.app.get("io");
+        if (io) {
+            io.to("manager").to("admin").emit("lead-updated", {
+                leadId,
+                status,
+                telecaller: req.user.name || "Telecaller",
+                leadName: lead.name || lead.Name
+            });
+        }
+
         res.json({ callLog });
     } catch (err) {
         next(err);

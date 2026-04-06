@@ -2,9 +2,9 @@ const Lead = require("../models/Lead");
 const MessageLog = require("../models/MessageLog");
 const twilio = require('twilio');
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
+const accountSid = (process.env.TWILIO_ACCOUNT_SID || "").trim();
+const authToken = (process.env.TWILIO_AUTH_TOKEN || "").trim();
+const twilioNumber = (process.env.TWILIO_PHONE_NUMBER || "").trim();
 
 let client;
 try {
