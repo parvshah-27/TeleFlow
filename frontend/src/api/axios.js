@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({ 
-    baseURL: "/api",
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5002/api",
     withCredentials: true
 });
 
@@ -24,7 +24,8 @@ API.interceptors.response.use(
         if (error.response?.status === 401) {
             sessionStorage.removeItem("user");
             sessionStorage.removeItem("token");
-            window.location.href = "/";
+            // Do NOT use window.location.href in Electron with HashRouter
+            // The App component will detect user is null and show login page
         }
         return Promise.reject(error);
     }

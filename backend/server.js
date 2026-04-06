@@ -4,13 +4,6 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first");
-try {
-    dns.setServers(["8.8.8.8", "8.8.4.4"]);
-} catch (e) {
-    console.warn("Could not set DNS servers:", e.message);
-}
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 console.log("--- Server Bootstrap ---");
@@ -29,12 +22,18 @@ const adminRoutes = require("./routes/admin.routes");
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cookieParser());
-const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"];
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(",") 
+    : ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"];
+
 app.use(cors({
     origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
+            console.log("Origin blocked by CORS:", origin);
             callback(new Error("Not allowed by CORS"));
         }
     },
@@ -71,38 +70,15 @@ app.use((err, req, res, next) => {
 });
 
 /* ---------- SERVER ---------- */
-let PORT = process.env.PORT || 5001;
-console.log(`Initial target port: ${PORT}...`);
-console.log(`Using MONGO_URI: ${process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + "..." : "UNDEFINED"}`);
+const PORT = parseInt(process.env.PORT, 10) || 5001;
+const HOST = "0.0.0.0";
 
-let server;
+console.log(`Starting server on ${HOST}:${PORT}...`);
+console.log(`Using MONGO_URI: ${process.env.MONGO_URI ? (process.env.MONGO_URI.startsWith("mongodb+srv") ? "Connected to Atlas" : "Connected to Local/Other") : "UNDEFINED"}`);
 
-function startServer(portToTry) {
-    server = app.listen(portToTry, () => {
-        const actualPort = server.address().port;
-        console.log(`🚀 Server running on port ${actualPort}`);
-        // Write actual port to a file for frontend to discover
-        try {
-            const fs = require('fs');
-            const portFilePath = path.join(__dirname, '..', 'backend_port.txt');
-            fs.writeFileSync(portFilePath, actualPort.toString());
-            console.log(`Port saved to ${portFilePath}`);
-        } catch (err) {
-            console.warn(`Could not save port to file: ${err.message}`);
-        }
-    });
-
-    server.on("error", (err) => {
-        if (err.code === "EADDRINUSE") {
-            console.log(`Port ${portToTry} is already in use, trying port ${parseInt(portToTry) + 1}...`);
-            startServer(parseInt(portToTry) + 1);
-        } else {
-            console.error(`Server failed to start: ${err.message}`);
-        }
-    });
-}
-
-startServer(PORT);
+const server = app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+});
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
@@ -110,8 +86,7 @@ process.on('unhandledRejection', (err, promise) => {
     // Log the error to a file
     require('fs').appendFileSync('error.log', `Unhandled Rejection: ${err.stack}\n`);
     // Close server & exit process
-    if (server) server.close(() => process.exit(1));
-    else process.exit(1);
+    server.close(() => process.exit(1));
 });
 
 // Handle uncaught exceptions
@@ -120,7 +95,7 @@ process.on('uncaughtException', (err) => {
     // Log the error to a file
     require('fs').appendFileSync('error.log', `Uncaught Exception: ${err.stack}\n`);
     // Close server & exit process
-    if (server) server.close(() => process.exit(1));
-    else process.exit(1);
+    server.close(() => process.exit(1));
 });
 
+    

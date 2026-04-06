@@ -24,6 +24,14 @@ export default function App() {
     const [view, setView] = useState("login"); // "login", "forgot"
 
     useEffect(() => {
+        // "Wake up" Render server early when user is on login page
+        if (!user) {
+            console.log("Pinging backend to wake up...");
+            axios.get("/test").catch(() => {}); // /api/test exists in server.js
+        }
+    }, [user]);
+
+    useEffect(() => {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -34,7 +42,7 @@ export default function App() {
 
     const handleLoginSuccess = (userData) => {
         setUser(userData);
-        window.location.href = "/";
+        // Removed window.location.href = "/" which breaks Electron HashRouter
     };
 
     const handleLogout = async () => {
@@ -46,7 +54,7 @@ export default function App() {
         sessionStorage.removeItem("user");
         sessionStorage.removeItem("token");
         setUser(null);
-        window.location.href = "/";
+        // Removed window.location.href = "/" which breaks Electron HashRouter
     };
 
     if (!user) {

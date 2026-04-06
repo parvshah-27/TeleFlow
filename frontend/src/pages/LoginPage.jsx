@@ -8,20 +8,30 @@ const LoginPage = ({ onLogin, onForgotPassword }) => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isSlow, setIsSlow] = useState(false);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setIsSlow(false);
+
+        const timer = setTimeout(() => {
+            setIsSlow(true);
+        }, 3000);
+
         try {
             const res = await axios.post("/auth/login", { email, password });
+            clearTimeout(timer);
             const user = { name: res.data.name, role: res.data.role };
             sessionStorage.setItem("user", JSON.stringify(user));
             sessionStorage.setItem("token", res.data.token);
             onLogin(user);
         } catch (err) {
+            clearTimeout(timer);
             toast.error(err.response?.data?.msg || "Invalid login");
         } finally {
             setLoading(false);
+            setIsSlow(false);
         }
     };
 
@@ -76,10 +86,17 @@ const LoginPage = ({ onLogin, onForgotPassword }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex flex-col items-center justify-center gap-1"
                     >
-                        {loading && <Loader2 size={18} className="animate-spin" />}
-                        {loading ? "Signing in..." : "Login"}
+                        <div className="flex items-center gap-2">
+                            {loading && <Loader2 size={18} className="animate-spin" />}
+                            {loading ? "Signing in..." : "Login"}
+                        </div>
+                        {isSlow && (
+                            <span className="text-[10px] animate-pulse font-normal opacity-80">
+                                Waking up server (Render Free Tier)...
+                            </span>
+                        )}
                     </button>
                 </form>
 
