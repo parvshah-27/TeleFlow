@@ -189,11 +189,11 @@ const BulkWhatsAppPage = ({ user, onGenerateAI }) => {
         if (selectedLeads.length === 0) return toast.error("Select leads first to generate personalized content");
         
         setIsGenerating(true);
-        const prompt = `Write a professional WhatsApp message for ${selectedLeads.length} leads. 
+        const prompt = `Write a single professional WhatsApp message for ${selectedLeads.length} leads. 
         Context: ${filterStatus !== 'All' ? `Leads are in '${filterStatus}' status.` : ''} 
         ${filterProduct !== 'All' ? `Leads are interested in '${filterProduct}'.` : ''}
         The message should be concise, include emojis, and use placeholders like {{name}} and {{product}}. 
-        Keep it under 300 characters.`;
+        Return ONLY the message text without any extra notes. Keep it under 300 characters.`;
         
         try {
             const result = await onGenerateAI(prompt);

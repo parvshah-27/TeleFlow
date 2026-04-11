@@ -179,7 +179,7 @@ function TeleFlowAppContent({ user, handleLogout }) {
         if (!updateForm.notes) return;
 
         setIsRefining(true);
-        const prompt = `Refine the following telecaller notes to be professional, concise, and grammatically correct. Keep important details. Only return the refined text. Raw Notes: "${updateForm.notes}"`;
+        const prompt = `Convert these raw telecaller notes into one professional, grammatically correct sentence. Return ONLY the refined sentence.\n\nRaw Notes: "${updateForm.notes}"`;
 
         const result = await generateGeminiContent(prompt);
         setUpdateForm({ ...updateForm, notes: result });

@@ -191,7 +191,7 @@ const BulkSMSPage = ({ user, onGenerateAI }) => {
         Context: ${filterStatus !== 'All' ? `Leads are in '${filterStatus}' status.` : ''} 
         ${filterProduct !== 'All' ? `Leads are interested in '${filterProduct}'.` : ''}
         The message should be concise, professional, and use placeholders like {{name}} and {{product}}. 
-        Keep it under 160 characters for a single SMS segment.`;
+        Return ONLY the SMS text without any extra notes. Keep it under 160 characters for a single SMS segment.`;
         
         try {
             const result = await onGenerateAI(prompt);
