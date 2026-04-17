@@ -4,7 +4,7 @@ const generateGeminiContent = async (req, res, next) => {
     const { prompt } = req.body;
     console.log("Gemini Request Prompt:", prompt?.substring(0, 50) + "...");
     const apiKey = process.env.GEMINI_API_KEY;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
 
     const payload = {
         system_instruction: {
@@ -20,8 +20,12 @@ const generateGeminiContent = async (req, res, next) => {
         console.log("Gemini Response SUCCESS");
         res.json(response.data);
     } catch (error) {
-        console.error("Gemini Controller ERROR:", error.response?.data || error.message);
-        next(error);
+        const errorMsg = error.response?.data?.error?.message || error.message;
+        console.error("Gemini Controller ERROR:", errorMsg);
+        res.status(error.response?.status || 500).json({ 
+            msg: "Gemini API Error", 
+            error: errorMsg 
+        });
     }
 };
 
