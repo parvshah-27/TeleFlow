@@ -19,6 +19,7 @@ const callRoutes = require("./routes/call.routes");
 const adminRoutes = require("./routes/admin.routes");
 
 /* ---------- MIDDLEWARE ---------- */
+console.log("DEBUG: Server.js middleware section reached - UNIQUE_ID_12345");
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cookieParser());
@@ -31,7 +32,8 @@ app.use(cors({
             callback(new Error("Not allowed by CORS"));
         }
     },
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json()); // ✅ REQUIRED for req.body
 app.use(express.urlencoded({ extended: true }));

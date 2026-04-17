@@ -11,7 +11,7 @@ export default function App() {
     console.log("App component rendering. User state check...");
     const [user, setUser] = useState(() => {
         try {
-            const storedUser = sessionStorage.getItem("user");
+            const storedUser = localStorage.getItem("user");
             if (!storedUser || storedUser === "undefined") return null;
             const parsed = JSON.parse(storedUser);
             if (parsed && typeof parsed === "object" && parsed.role) {
@@ -19,7 +19,7 @@ export default function App() {
             }
             return null;
         } catch (error) {
-            console.error("Failed to parse user from sessionStorage", error);
+            console.error("Failed to parse user from localStorage", error);
             return null;
         }
     });
@@ -53,8 +53,8 @@ export default function App() {
         } catch (error) {
             console.error("Logout failed", error);
         }
-        sessionStorage.removeItem("user");
-        sessionStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
         setUser(null);
         navigate("/", { replace: true });
     };

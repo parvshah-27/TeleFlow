@@ -91,9 +91,9 @@ const ProfilePage = () => {
 
             const res = await axios.put("/users/profile", updateData);
             
-            // Update session storage if name/email changed (used for display in sidebar)
-            const storedUser = JSON.parse(sessionStorage.getItem("user") || "{}");
-            sessionStorage.setItem("user", JSON.stringify({
+            // Update local storage if name/email changed (used for display in sidebar)
+            const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+            localStorage.setItem("user", JSON.stringify({
                 ...storedUser,
                 name: res.data.name,
                 email: res.data.email

@@ -23,8 +23,10 @@ const LoginPage = ({ onLogin, onForgotPassword }) => {
             const res = await axios.post("/auth/login", { email, password });
             clearTimeout(timer);
             const user = { name: res.data.name, role: res.data.role };
-            sessionStorage.setItem("user", JSON.stringify(user));
-            sessionStorage.setItem("token", res.data.token);
+            console.log("DEBUG: Login successful. Saving token and user to localStorage.");
+            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("token", res.data.token);
+            console.log(`DEBUG: Token saved? ${!!localStorage.getItem("token")}`);
             onLogin(user);
         } catch (err) {
             clearTimeout(timer);

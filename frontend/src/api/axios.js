@@ -7,9 +7,12 @@ const API = axios.create({
 
 API.interceptors.request.use(
     (config) => {
-        const token = sessionStorage.getItem("token");
+        const token = localStorage.getItem("token");
+        console.log(`DEBUG: Sending ${config.method.toUpperCase()} to ${config.url}. Token exists: ${!!token}`);
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+        } else {
+            console.warn(`DEBUG: No token found in localStorage for request to ${config.url}`);
         }
         return config;
     },
@@ -21,12 +24,14 @@ API.interceptors.request.use(
 API.interceptors.response.use(
     (response) => response,
     (error) => {
+        console.error(`DEBUG: Response error from ${error.config?.url}:`, error.response?.status, error.response?.data);
+        // Temporarily commented out to prevent clearing token on 401
+        /*
         if (error.response?.status === 401) {
             sessionStorage.removeItem("user");
             sessionStorage.removeItem("token");
-            // Do NOT use window.location.href in Electron with HashRouter
-            // The App component will detect user is null and show login page
         }
+        */
         return Promise.reject(error);
     }
 );
