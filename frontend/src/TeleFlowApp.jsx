@@ -219,10 +219,26 @@ function TeleFlowAppContent({ user, handleLogout }) {
                         user.role?.toLowerCase() === ROLES.MANAGER.toLowerCase() ? <ManagerDashboard /> :
                             <AdminDashboard />
                 } />
-                <Route path="/leads" element={<MyLeadsPage {...{ user, filteredLeads, searchQuery, setSearchQuery, handleSelectLead, pagination, fetchLeads, handleUpdateStatus }} />} />
-                <Route path="/performance" element={<PerformanceInsights />} />
-                <Route path="/performance-overview" element={<PerformanceOverviewPage />} />
-                <Route path="/followups" element={<FollowUps onSelectLead={handleSelectLead} />} />
+                <Route path="/leads" element={
+                    user.role?.toLowerCase() === ROLES.TELECALLER.toLowerCase() 
+                        ? <MyLeadsPage {...{ user, filteredLeads, searchQuery, setSearchQuery, handleSelectLead, pagination, fetchLeads, handleUpdateStatus }} />
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
+                <Route path="/performance" element={
+                    user.role?.toLowerCase() === ROLES.TELECALLER.toLowerCase() 
+                        ? <PerformanceInsights /> 
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
+                <Route path="/performance-overview" element={
+                    user.role?.toLowerCase() === ROLES.TELECALLER.toLowerCase() 
+                        ? <PerformanceOverviewPage /> 
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
+                <Route path="/followups" element={
+                    user.role?.toLowerCase() === ROLES.TELECALLER.toLowerCase() 
+                        ? <FollowUps onSelectLead={handleSelectLead} />
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
                 <Route path="/bulk-whatsapp" element={
                     (user.role?.toLowerCase() === ROLES.ADMIN.toLowerCase() || user.role?.toLowerCase() === ROLES.TELECALLER.toLowerCase()) 
                         ? <BulkWhatsAppPage user={user} onGenerateAI={generateGeminiContent} /> 
@@ -238,10 +254,26 @@ function TeleFlowAppContent({ user, handleLogout }) {
                         ? <ManageScriptsPage /> 
                         : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
                 } />
-                <Route path="/upload" element={<ImportLeadsPage />} />
-                <Route path="/assign" element={<AssignLeadsPage />} />
-                <Route path="/completed" element={<CompletedLeadsPage />} />
-                <Route path="/users" element={<UserManagementPage currentUser={user} />} />
+                <Route path="/upload" element={
+                    (user.role?.toLowerCase() === ROLES.ADMIN.toLowerCase() || user.role?.toLowerCase() === ROLES.MANAGER.toLowerCase()) 
+                        ? <ImportLeadsPage /> 
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
+                <Route path="/assign" element={
+                    (user.role?.toLowerCase() === ROLES.ADMIN.toLowerCase() || user.role?.toLowerCase() === ROLES.MANAGER.toLowerCase()) 
+                        ? <AssignLeadsPage /> 
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
+                <Route path="/completed" element={
+                    (user.role?.toLowerCase() === ROLES.ADMIN.toLowerCase() || user.role?.toLowerCase() === ROLES.MANAGER.toLowerCase()) 
+                        ? <CompletedLeadsPage /> 
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
+                <Route path="/users" element={
+                    (user.role?.toLowerCase() === ROLES.ADMIN.toLowerCase() || user.role?.toLowerCase() === ROLES.MANAGER.toLowerCase()) 
+                        ? <UserManagementPage currentUser={user} /> 
+                        : <div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Access Denied</div>
+                } />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/tutorial" element={<TutorialPage />} />
                 <Route path="*" element={<div className="flex items-center justify-center h-[60vh] text-slate-500 font-bold uppercase tracking-widest">Page Not Found</div>} />

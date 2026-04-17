@@ -4,8 +4,10 @@ import { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import axios from "./api/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function App() {
+    const navigate = useNavigate();
     console.log("App component rendering. User state check...");
     const [user, setUser] = useState(() => {
         try {
@@ -42,7 +44,7 @@ export default function App() {
 
     const handleLoginSuccess = (userData) => {
         setUser(userData);
-        // Removed window.location.href = "/" which breaks Electron HashRouter
+        navigate("/", { replace: true });
     };
 
     const handleLogout = async () => {
@@ -54,7 +56,7 @@ export default function App() {
         sessionStorage.removeItem("user");
         sessionStorage.removeItem("token");
         setUser(null);
-        // Removed window.location.href = "/" which breaks Electron HashRouter
+        navigate("/", { replace: true });
     };
 
     if (!user) {
@@ -76,7 +78,7 @@ export default function App() {
     return (
         <>
             <Toaster />
-            <TeleFlowApp user={user} handleLogout={handleLogout} />
+            <TeleFlowApp key={`${user.role}-${user.name}`} user={user} handleLogout={handleLogout} />
         </>
     );
 }
